@@ -867,28 +867,55 @@
             const tbody = document.getElementById('trades-tbody');
             tbody.innerHTML = '';
             
-            // Expected headers: trade_id,entry_date,exit_date,type,size,entry_price,exit_price,commission,net_pnl,pnl_pct
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].split(',');
-                if (parts.length >= 9) {
+                if (parts.length >= 7) {
                     const tr = document.createElement('tr');
-                    const netPnL = parseFloat(parts[8]);
+                    
+                    const exitDateStr = parts[0].trim();
+                    const pnl = parseFloat(parts[1]);
+                    const netPnL = parseFloat(parts[2]);
+                    const barlen = parseInt(parts[3]);
+                    const commission = parseFloat(parts[4]);
+                    const entryPrice = parseFloat(parts[5]);
+                    const exitPrice = parseFloat(parts[6]);
+                    
+                    // Derive entry date dynamically from exit date and bar length
+                    const entryDateStr = estimateEntryDate(exitDateStr, barlen);
+                    
+                    // Derive size dynamically
+                    const priceDiff = exitPrice - entryPrice;
+                    const size = priceDiff !== 0 ? Math.abs(Math.round(pnl / priceDiff)) : 'N/A';
+                    
                     const isWin = netPnL >= 0;
                     
                     tr.innerHTML = `
-                        <td class="mono">${parts[0]}</td>
-                        <td class="mono">${parts[1]}</td>
-                        <td class="mono">${parts[2]}</td>
-                        <td><span style="color: var(--accent-blue); font-weight:600;">${parts[3].toUpperCase()}</span></td>
-                        <td class="mono">${parts[4]}</td>
-                        <td class="mono">INR ${parseFloat(parts[5]).toFixed(2)}</td>
-                        <td class="mono">INR ${parseFloat(parts[6]).toFixed(2)}</td>
-                        <td class="mono">INR ${parseFloat(parts[7]).toFixed(2)}</td>
+                        <td class="mono">${i}</td>
+                        <td class="mono">${entryDateStr}</td>
+                        <td class="mono">${exitDateStr}</td>
+                        <td><span style="color: var(--accent-blue); font-weight:600;">LONG</span></td>
+                        <td class="mono">${size}</td>
+                        <td class="mono">INR ${entryPrice.toFixed(2)}</td>
+                        <td class="mono">INR ${exitPrice.toFixed(2)}</td>
+                        <td class="mono">INR ${commission.toFixed(2)}</td>
                         <td class="mono pnl-value ${isWin ? 'green' : 'red'}">${isWin ? '+' : ''}INR ${netPnL.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                         <td><span class="status-badge ${isWin ? 'win' : 'loss'}">${isWin ? 'WIN' : 'LOSS'}</span></td>
                     `;
                     tbody.appendChild(tr);
                 }
+            }
+        }
+
+        function estimateEntryDate(exitDateStr, barlen) {
+            try {
+                const exitDate = new Date(exitDateStr);
+                if (isNaN(exitDate.getTime())) return exitDateStr;
+                // calendar days approximation (trading days * 1.4)
+                const calendarDays = Math.ceil(barlen * 1.4) || 1;
+                exitDate.setDate(exitDate.getDate() - calendarDays);
+                return exitDate.toISOString().split('T')[0];
+            } catch (e) {
+                return exitDateStr;
             }
         }
 
@@ -1095,6 +1122,7 @@
                             }
                         }
                     }
+                });
             }
         }
 
