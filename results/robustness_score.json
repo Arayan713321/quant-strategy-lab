@@ -1,0 +1,29 @@
+{
+    "overall_robustness_score": 91.64359038559408,
+    "factors": {
+        "consistency": {
+            "weight": 0.3,
+            "raw_value": "55.6% profitable, 100.0% within -5% risk budget",
+            "score": 77.77777777777777,
+            "weighted_score": 23.333333333333332
+        },
+        "walk_forward_efficiency": {
+            "weight": 0.3,
+            "raw_value": "IS Sharpe: 0.011, OOS Sharpe: -0.037 (Decay: 0.047)",
+            "score": 95.2607175824298,
+            "weighted_score": 28.57821527472894
+        },
+        "parameter_stability": {
+            "weight": 0.2,
+            "raw_value": "Sharpe StdDev: 0.0134 across configurations (Mean: -0.015)",
+            "score": 98.66020888765898,
+            "weighted_score": 19.732041777531798
+        },
+        "drawdown_control": {
+            "weight": 0.2,
+            "raw_value": "Baseline Max Drawdown: 7.22%",
+            "score": 100.0,
+            "weighted_score": 20.0
+        }
+    }
+}

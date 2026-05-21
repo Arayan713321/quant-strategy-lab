@@ -1,0 +1,10 @@
+Metric,SMA 15/45 (Aggressive),SMA 20/50 (Baseline),SMA 25/60 (Conservative)
+Initial Capital,"INR 100,000.00","INR 100,000.00","INR 100,000.00"
+Final Portfolio Value,"INR 133,303.99","INR 118,557.10","INR 135,841.71"
+Total Return (%),33.30%,18.56%,35.84%
+CAGR (%),4.20%,2.46%,4.48%
+Sharpe Ratio,-0.01,-0.03,-0.00
+Maximum Drawdown (%),8.09%,7.22%,5.24%
+Win Rate (%),56.25%,43.75%,70.00%
+Profit Factor,1.00,1.00,1.00
+Number of Trades,16,16,10
