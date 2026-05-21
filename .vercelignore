@@ -1,0 +1,11 @@
+# Ignore all Python files and source folders so Vercel treats this as a purely static HTML dashboard
+**/*.py
+requirements.txt
+backtest/
+strategy/
+walkforward/
+optimization/
+robustness/
+scratch/
+data/*.csv
+data/downloader.py
