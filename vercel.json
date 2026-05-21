@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/results/(.*)",
+      "headers": { "cache-control": "s-maxage=0, no-cache, no-store, must-revalidate" },
+      "dest": "/results/$1"
+    },
+    {
+      "src": "/charts/(.*)",
+      "headers": { "cache-control": "s-maxage=0, no-cache, no-store, must-revalidate" },
+      "dest": "/charts/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
