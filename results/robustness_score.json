@@ -1,5 +1,5 @@
 {
-    "overall_robustness_score": 84.909411619605,
+    "overall_robustness_score": 84.90936216774149,
     "factors": {
         "consistency": {
             "weight": 0.3,
@@ -10,14 +10,14 @@
         "walk_forward_efficiency": {
             "weight": 0.3,
             "raw_value": "IS Sharpe: 1.353, OOS Sharpe: 0.336 (Decay: 1.017, Decay Ratio: 0.752)",
-            "score": 77.44318287057916,
-            "weighted_score": 23.23295486117375
+            "score": 77.44308012615008,
+            "weighted_score": 23.232924037845024
         },
         "parameter_stability": {
             "weight": 0.2,
             "raw_value": "Sharpe CV: 0.1657 (StdDev: 0.1256, Mean: 0.758)",
-            "score": 91.71561712548956,
-            "weighted_score": 18.34312342509791
+            "score": 91.71552398281571,
+            "weighted_score": 18.343104796563143
         },
         "drawdown_control": {
             "weight": 0.2,

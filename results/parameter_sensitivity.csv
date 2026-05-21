@@ -1,6 +1,6 @@
 Metric,SMA 15/45 (Aggressive),SMA 20/50 (Baseline),SMA 25/60 (Conservative)
 Initial Capital,"INR 100,000.00","INR 100,000.00","INR 100,000.00"
-Final Portfolio Value,"INR 133,304.05","INR 118,557.16","INR 135,841.63"
+Final Portfolio Value,"INR 133,304.07","INR 118,557.11","INR 135,841.61"
 Total Return (%),33.30%,18.56%,35.84%
 CAGR (%),4.20%,2.46%,4.48%
 Sharpe Ratio,0.81,0.59,0.88
