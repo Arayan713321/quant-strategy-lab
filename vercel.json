@@ -1,6 +1,11 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "results/**", "use": "@vercel/static" },
+    { "src": "charts/**", "use": "@vercel/static" }
+  ],
   "routes": [
     {
       "src": "/results/(.*)",
