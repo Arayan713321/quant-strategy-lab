@@ -51,3 +51,6 @@ data/*.csv
 # System and logs (optional, but keep results and charts)
 results/*.log
 *.log
+
+# Local scratch scripts
+scratch/

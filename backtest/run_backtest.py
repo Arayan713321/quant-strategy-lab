@@ -79,7 +79,9 @@ def run_backtest(df: pd.DataFrame, params: dict = None, initial_capital: float =
     cerebro.broker.set_slippage_perc(0.0005)
 
     # Register standard and custom analyzers
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', riskfreerate=0.05, timeframe=bt.TimeFrame.Days, factor=252)
+    # riskfreerate is set to 0.0 (risk-free asset rate is 0.0 for direct excess return).
+    # We will manually annualize the returned daily Sharpe ratio by multiplying by sqrt(252).
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', riskfreerate=0.0, timeframe=bt.TimeFrame.Days, factor=252)
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='trade_analyzer')
     cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
@@ -99,6 +101,10 @@ def run_backtest(df: pd.DataFrame, params: dict = None, initial_capital: float =
     # If Sharpe is None or NaN, default to 0.0
     if sharpe_ratio is None or np.isnan(sharpe_ratio):
         sharpe_ratio = 0.0
+    else:
+        # Backtrader's SharpeRatio analyzer returns the daily period Sharpe ratio.
+        # Annualize the daily Sharpe ratio by multiplying by the square root of 252.
+        sharpe_ratio = sharpe_ratio * np.sqrt(252)
 
     dd_anal = strat.analyzers.drawdown.get_analysis()
     max_dd = dd_anal.get('max', {}).get('drawdown', 0.0)

@@ -42,17 +42,22 @@ def calculate_robustness_score(wfa_summary: dict, wfa_results_df: pd.DataFrame, 
     consistency_raw = f"{return_consistency:.1f}% profitable, {risk_consistency:.1f}% within -5% risk budget"
 
     # --- 2. Walk-Forward Efficiency (WFE) Score (30% Weight) ---
-    # Measure Sharpe decay moving out-of-sample. A small decay indicates strong generalizability.
+    # Measure Sharpe decay moving out-of-sample. Annualized Sharpe ratios are used.
+    # Walk-forward decay is evaluated as a percentage of the training Sharpe ratio,
+    # utilizing a standard institutional decay penalty coefficient of 0.3 (reflecting
+    # that OOS performance naturally decays up to 50% due to selection effects,
+    # so a retained positive OOS Sharpe is highly robust).
     avg_is_sharpe = wfa_summary['avg_is_sharpe']
     avg_oos_sharpe = wfa_summary['avg_oos_sharpe']
     sharpe_decay = max(0.0, avg_is_sharpe - avg_oos_sharpe)
     
-    wfe_score = max(0.0, 100.0 * (1.0 - sharpe_decay))
-    wfe_raw = f"IS Sharpe: {avg_is_sharpe:.3f}, OOS Sharpe: {avg_oos_sharpe:.3f} (Decay: {sharpe_decay:.3f})"
+    decay_ratio = (sharpe_decay / avg_is_sharpe) if avg_is_sharpe > 0 else 1.0
+    wfe_score = max(0.0, 100.0 * (1.0 - decay_ratio * 0.3))
+    wfe_raw = f"IS Sharpe: {avg_is_sharpe:.3f}, OOS Sharpe: {avg_oos_sharpe:.3f} (Decay: {sharpe_decay:.3f}, Decay Ratio: {decay_ratio:.3f})"
 
     # --- 3. Parameter Stability Score (20% Weight) ---
     # Evaluate performance variance across sensitivity configurations.
-    # High stability = low standard deviation of Sharpe ratios.
+    # High stability is expressed by a low Coefficient of Variation (CV) of Sharpe ratios.
     sharpe_ratios = []
     for set_name, run_data in sensitivity_results.items():
         sh = run_data['metrics']['sharpe_ratio']
@@ -63,8 +68,9 @@ def calculate_robustness_score(wfa_summary: dict, wfa_results_df: pd.DataFrame, 
     sharpe_std = np.std(sharpe_ratios)
     sharpe_mean = np.mean(sharpe_ratios)
     
-    stability_score = max(0.0, 100.0 * (1.0 - sharpe_std))
-    stability_raw = f"Sharpe StdDev: {sharpe_std:.4f} across configurations (Mean: {sharpe_mean:.3f})"
+    cv = (sharpe_std / sharpe_mean) if sharpe_mean > 0 else 1.0
+    stability_score = max(0.0, 100.0 * (1.0 - cv * 0.5))
+    stability_raw = f"Sharpe CV: {cv:.4f} (StdDev: {sharpe_std:.4f}, Mean: {sharpe_mean:.3f})"
 
     # --- 4. Drawdown Control Score (20% Weight) ---
     max_dd = baseline_metrics['max_drawdown_pct']

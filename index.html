@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quant Strategy Lab - Analytics Dashboard</title>
+    <!-- Modern Google Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for high-fidelity interactive curves -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-yellow: #f59e0b;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 5%;
+            border-bottom: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            background: rgba(11, 15, 25, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .logo-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, #d1d5db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+        }
+
+        .badge-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.1); opacity: 0.5; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .badge-ticker {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Metrics KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+        }
+
+        .kpi-value.green { color: var(--accent-green); }
+        .kpi-value.red { color: var(--accent-red); }
+
+        .kpi-subtext {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        /* Two-Column Section */
+        .analytics-block {
+            display: grid;
+            grid-template-columns: 2.2fr 1.1fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 1024px) {
+            .analytics-block {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-title h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-title p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font-main);
+            transition: var(--transition-smooth);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            height: 380px;
+            width: 100%;
+        }
+
+        /* Robustness Scoring Circular Panel */
+        .robustness-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 28px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            position: relative;
+        }
+
+        .panel-heading {
+            width: 100%;
+            text-align: left;
+        }
+
+        .panel-heading h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .panel-heading p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .score-circle-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-circle-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.03);
+            stroke-width: 12px;
+        }
+
+        .circle-bar {
+            fill: none;
+            stroke: url(#scoreGradient);
+            stroke-width: 12px;
+            stroke-linecap: round;
+            stroke-dasharray: 502; /* 2 * PI * r (r=80) = 502.6 */
+            stroke-dashoffset: 75.8; /* Annualized score 84.91% */
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        .score-text {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 38px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .score-max {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            margin-top: 4px;
+        }
+
+        .factors-breakdown {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .factor-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .factor-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .factor-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .factor-score {
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        .factor-bar-bg {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .factor-bar {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Styled Parameter Sensitivity Block */
+        .sensitivity-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--card-border);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td.bold {
+            font-weight: 600;
+        }
+
+        td.mono {
+            font-family: var(--font-mono);
+        }
+
+        /* Trades Log Table */
+        .trades-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-badge.win {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.loss {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .pnl-value.green { color: var(--accent-green); font-weight: 600; }
+        .pnl-value.red { color: var(--accent-red); font-weight: 600; }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(59, 130, 246, 0.1);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div class="loader-overlay" id="loader">
+        <div class="spinner"></div>
+        <p style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-blue);">INITIALIZING PORTFOLIO QUANT ENGINE...</p>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo-section">
+            <div class="logo-icon">Q</div>
+            <div class="logo-title">
+                <h1>Quant Strategy Lab</h1>
+                <p>MOMENTUM SWING ANALYSIS HARNESS</p>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="badge badge-ticker">
+                <span style="font-weight: 700; margin-right: 4px;">SYMBOL:</span> AAPL
+            </div>
+            <div class="badge">
+                <div class="badge-pulse"></div>
+                APPROVED & COMPLIANT (>75)
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- KPI Card Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Net Return</div>
+                <div class="kpi-value green">+18.56%</div>
+                <div class="kpi-subtext">BASELINE CROSSOVER RUN</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Annualized Sharpe</div>
+                <div class="kpi-value green">+0.59</div>
+                <div class="kpi-subtext">DAILY EXCESS RETURN METRIC</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Maximum Drawdown</div>
+                <div class="kpi-value green">7.22%</div>
+                <div class="kpi-subtext">LIMIT PROTECTION UNDER 15%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Strategy CAGR</div>
+                <div class="kpi-value">+2.46%</div>
+                <div class="kpi-subtext">COMPOUNDED ANNUALLY</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Closed Trades</div>
+                <div class="kpi-value">16</div>
+                <div class="kpi-subtext">43.75% WIN RATE</div>
+            </div>
+        </div>
+
+        <!-- Main Analytics Block -->
+        <div class="analytics-block">
+            <!-- Dynamic Chart Panel -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <h2 id="chart-header-title">Equity Growth & Max Drawdowns</h2>
+                        <p id="chart-header-desc">Continuous daily portfolio valuation and drawdown channels (2018–2024)</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="switchChart('equity')">Equity Curve</button>
+                            <button class="tab-btn" onclick="switchChart('wfa')">Walk-Forward</button>
+                        </div>
+                        <button class="tab-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-green);" onclick="exportChartPNG()">Export PNG</button>
+                        <button class="tab-btn" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.2); color: var(--accent-yellow);" onclick="exportDataCSV()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Robustness Circular Indicator -->
+            <div class="robustness-panel">
+                <div class="panel-heading">
+                    <h2>Robustness Score</h2>
+                    <p>Quantitative buy-side stress audit</p>
+                </div>
+                
+                <div class="score-circle-wrapper">
+                    <svg class="score-circle-svg" viewBox="0 0 190 190">
+                        <defs>
+                            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="circle-bg" cx="95" cy="95" r="80"></circle>
+                        <circle class="circle-bar" id="progress-circle" cx="95" cy="95" r="80"></circle>
+                    </svg>
+                    <div class="score-text">
+                        <div class="score-number">84.91</div>
+                        <div class="score-max">OUT OF 100</div>
+                    </div>
+                </div>
+
+                <div class="factors-breakdown">
+                    <div class="factor-item">
+                        <div class="factor-meta">
+                            <span class="factor-name"> Consistency (30%)</span>
+                            <span class="factor-score">77.78 / 100</span>
+                        </div>
+                        <div class="factor-bar-bg">
+                            <div class="factor-bar" style="width: 77.78%;"></div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-meta">
+                            <span class="factor-name"> Sharpe Retention (30%)</span>
+                            <span class="factor-score">77.44 / 100</span>
+                        </div>
+                        <div class="factor-bar-bg">
+                            <div class="factor-bar" style="width: 77.44%;"></div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-meta">
+                            <span class="factor-name"> Parameter Stability (20%)</span>
+                            <span class="factor-score">91.72 / 100</span>
+                        </div>
+                        <div class="factor-bar-bg">
+                            <div class="factor-bar" style="width: 91.72%;"></div>
+                        </div>
+                    </div>
+                    <div class="factor-item">
+                        <div class="factor-meta">
+                            <span class="factor-name"> Drawdown Control (20%)</span>
+                            <span class="factor-score">100.00 / 100</span>
+                        </div>
+                        <div class="factor-bar-bg">
+                            <div class="factor-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parameter Sensitivity Grid -->
+        <div class="sensitivity-block">
+            <div class="panel-heading">
+                <h2>Parameter Stability Matrix</h2>
+                <p>Comparative statistics across adjacent SMA crossover window widths</p>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Performance Metric</th>
+                            <th>SMA 15/45 (Aggressive)</th>
+                            <th>SMA 20/50 (Baseline)</th>
+                            <th>SMA 25/60 (Conservative)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="bold">Total Return (%)</td>
+                            <td class="mono" style="color: var(--accent-green);">+33.30%</td>
+                            <td class="mono" style="color: var(--accent-green);">+18.56%</td>
+                            <td class="mono" style="color: var(--accent-green);">+35.84%</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Annualized Sharpe Ratio</td>
+                            <td class="mono">0.81</td>
+                            <td class="mono">0.59</td>
+                            <td class="mono">0.88</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Maximum Drawdown (%)</td>
+                            <td class="mono" style="color: var(--accent-green);">8.09%</td>
+                            <td class="mono" style="color: var(--accent-green);">7.22%</td>
+                            <td class="mono" style="color: var(--accent-green);">5.24%</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Win Rate (%)</td>
+                            <td class="mono">56.25%</td>
+                            <td class="mono">43.75%</td>
+                            <td class="mono">70.00%</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Total Trades Count</td>
+                            <td class="mono">16</td>
+                            <td class="mono">16</td>
+                            <td class="mono">10</td>
+                        </tr>
+                        <tr>
+                            <td class="bold">Final Portfolio Value</td>
+                            <td class="mono">INR 133,303.94</td>
+                            <td class="mono">INR 118,557.16</td>
+                            <td class="mono">INR 135,841.71</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Trades Ledger -->
+        <div class="trades-block">
+            <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2>Baseline Trade Execution Ledger</h2>
+                    <p>Auditable historical records of all strategy transaction loops (16 Trades)</p>
+                </div>
+                <button class="tab-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-green); height: fit-content;" onclick="exportTradesCSV()">Export Trades CSV</button>
+            </div>
+            <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                <table id="trades-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Entry Date</th>
+                            <th>Exit Date</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Entry Price</th>
+                            <th>Exit Price</th>
+                            <th>Commission Paid</th>
+                            <th>Net PnL (INR)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trades-tbody">
+                        <!-- Loaded via JavaScript CSV parsing -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentChartMode = 'equity';
+        let chartInstance = null;
+        
+        // Mocked/parsed dataset variables
+        let equityDates = [];
+        let equityValues = [];
+        let drawdownValues = [];
+        let tradesCSVText = "";
+        let rawEquityCSVText = "";
+        
+        const wfaWindows = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9'];
+        const isSharpe = [1.50, 1.84, 1.34, 0.96, 1.64, 1.17, 1.41, 1.09, 1.24];
+        const oosSharpe = [3.15, -1.69, -0.42, -1.25, -0.93, 0.00, 0.00, 1.83, 2.34];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Remove Loader after delay
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+
+            // Animate progress circle
+            const circle = document.getElementById('progress-circle');
+            const circumference = 2 * Math.PI * 80;
+            circle.style.strokeDasharray = circumference;
+            // 84.91% of circumference stroke-dashoffset
+            const offset = circumference - (circumference * 84.91) / 100;
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+            }, 500);
+
+            // Load baseline curve data
+            try {
+                const response = await fetch('results/baseline_equity_curve.csv');
+                if (response.ok) {
+                    const csvText = await response.text();
+                    rawEquityCSVText = csvText;
+                    parseEquityCSV(csvText);
+                } else {
+                    generateMockEquityData();
+                }
+            } catch (e) {
+                generateMockEquityData();
+            }
+
+            // Load trades log
+            try {
+                const response = await fetch('results/baseline_trade_log.csv');
+                if (response.ok) {
+                    const csvText = await response.text();
+                    tradesCSVText = csvText;
+                    renderTrades(csvText);
+                } else {
+                    renderMockTrades();
+                }
+            } catch (e) {
+                renderMockTrades();
+            }
+
+            // Initial chart load
+            renderChart();
+        });
+
+        function parseEquityCSV(text) {
+            const lines = text.trim().split('\n');
+            // Assuming headers: DateTime, Portfolio Value, Drawdown (%)
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length >= 3) {
+                    equityDates.push(parts[0].trim());
+                    equityValues.push(parseFloat(parts[1]));
+                    drawdownValues.push(parseFloat(parts[2]));
+                }
+            }
+        }
+
+        function generateMockEquityData() {
+            equityDates = ["2018-01-01", "2019-01-01", "2020-01-01", "2021-01-01", "2022-01-01", "2023-01-01", "2024-01-01", "2024-12-31"];
+            equityValues = [100000.0, 96404.92, 107640.46, 110947.17, 109511.04, 107893.73, 111879.18, 118557.16];
+            drawdownValues = [0.0, -3.6, -1.9, -2.6, -3.8, -1.9, -2.3, 0.0];
+        }
+
+        function renderTrades(text) {
+            const lines = text.trim().split('\n');
+            const tbody = document.getElementById('trades-tbody');
+            tbody.innerHTML = '';
+            
+            // Expected headers: trade_id,entry_date,exit_date,type,size,entry_price,exit_price,commission,net_pnl,pnl_pct
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length >= 9) {
+                    const tr = document.createElement('tr');
+                    const netPnL = parseFloat(parts[8]);
+                    const isWin = netPnL >= 0;
+                    
+                    tr.innerHTML = `
+                        <td class="mono">${parts[0]}</td>
+                        <td class="mono">${parts[1]}</td>
+                        <td class="mono">${parts[2]}</td>
+                        <td><span style="color: var(--accent-blue); font-weight:600;">${parts[3].toUpperCase()}</span></td>
+                        <td class="mono">${parts[4]}</td>
+                        <td class="mono">INR ${parseFloat(parts[5]).toFixed(2)}</td>
+                        <td class="mono">INR ${parseFloat(parts[6]).toFixed(2)}</td>
+                        <td class="mono">INR ${parseFloat(parts[7]).toFixed(2)}</td>
+                        <td class="mono pnl-value ${isWin ? 'green' : 'red'}">${isWin ? '+' : ''}INR ${netPnL.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td><span class="status-badge ${isWin ? 'win' : 'loss'}">${isWin ? 'WIN' : 'LOSS'}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
+        function renderMockTrades() {
+            const tbody = document.getElementById('trades-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td class="mono">1</td>
+                    <td class="mono">2018-05-11</td>
+                    <td class="mono">2018-05-16</td>
+                    <td><span style="color: var(--accent-blue); font-weight:600;">LONG</span></td>
+                    <td class="mono">2129</td>
+                    <td class="mono">INR 44.67</td>
+                    <td class="mono">INR 43.82</td>
+                    <td class="mono">INR 188.40</td>
+                    <td class="mono pnl-value red">-INR 1,986.59</td>
+                    <td><span class="status-badge loss">LOSS</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">2</td>
+                    <td class="mono">2019-02-13</td>
+                    <td class="mono">2019-03-13</td>
+                    <td><span style="color: var(--accent-blue); font-weight:600;">LONG</span></td>
+                    <td class="mono">2249</td>
+                    <td class="mono">INR 40.86</td>
+                    <td class="mono">INR 43.41</td>
+                    <td class="mono">INR 189.51</td>
+                    <td class="mono pnl-value green">+INR 5,535.62</td>
+                    <td><span class="status-badge win">WIN</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">3</td>
+                    <td class="mono">2021-06-29</td>
+                    <td class="mono">2021-07-07</td>
+                    <td><span style="color: var(--accent-blue); font-weight:600;">LONG</span></td>
+                    <td class="mono">784</td>
+                    <td class="mono">INR 131.46</td>
+                    <td class="mono">INR 139.85</td>
+                    <td class="mono">INR 212.71</td>
+                    <td class="mono pnl-value green">+INR 6,360.11</td>
+                    <td><span class="status-badge win">WIN</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">4</td>
+                    <td class="mono">2023-11-15</td>
+                    <td class="mono">2023-12-14</td>
+                    <td><span style="color: var(--accent-blue); font-weight:600;">LONG</span></td>
+                    <td class="mono">546</td>
+                    <td class="mono">INR 185.84</td>
+                    <td class="mono">INR 195.71</td>
+                    <td class="mono">INR 208.32</td>
+                    <td class="mono pnl-value green">+INR 5,178.18</td>
+                    <td><span class="status-badge win">WIN</span></td>
+                </tr>
+            `;
+        }
+
+        function switchChart(mode) {
+            if (currentChartMode === mode) return;
+            currentChartMode = mode;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const title = document.getElementById('chart-header-title');
+            const desc = document.getElementById('chart-header-desc');
+
+            if (mode === 'equity') {
+                title.innerText = 'Equity Growth & Max Drawdowns';
+                desc.innerText = 'Continuous daily portfolio valuation and drawdown channels (2018–2024)';
+            } else {
+                title.innerText = 'Walk-Forward Optimization Profile';
+                desc.innerText = 'Contrast of In-Sample training vs. Out-of-Sample validation Sharpe ratio per segment';
+            }
+
+            renderChart();
+        }
+
+        function renderChart() {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            if (currentChartMode === 'equity') {
+                let step = Math.max(1, Math.floor(equityValues.length / 300));
+                let dispDates = [];
+                let dispValues = [];
+                let dispDrawdowns = [];
+                for (let i = 0; i < equityValues.length; i += step) {
+                    dispDates.push(equityDates[i]);
+                    dispValues.push(equityValues[i]);
+                    dispDrawdowns.push(drawdownValues[i] * 100);
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dispDates,
+                        datasets: [
+                            {
+                                label: 'Portfolio Equity (INR)',
+                                data: dispValues,
+                                borderColor: '#3b82f6',
+                                borderWidth: 2,
+                                yAxisID: 'y-equity',
+                                pointRadius: 0,
+                                fill: true,
+                                backgroundColor: (context) => {
+                                    const ctx = context.chart.ctx;
+                                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                                    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.15)');
+                                    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                                    return gradient;
+                                }
+                            },
+                            {
+                                label: 'Drawdown (%)',
+                                data: dispDrawdowns,
+                                borderColor: 'rgba(239, 68, 68, 0.5)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                                fill: true,
+                                borderWidth: 1,
+                                yAxisID: 'y-drawdown',
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            'y-equity': {
+                                type: 'linear',
+                                position: 'left',
+                                grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                                ticks: { color: '#9ca3af', font: { family: 'Outfit' } }
+                            },
+                            'y-drawdown': {
+                                type: 'linear',
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: { color: '#ef4444', font: { family: 'Outfit' } },
+                                min: -15,
+                                max: 0
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#9ca3af', maxTicksLimit: 8, font: { family: 'Outfit' } }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: '#f3f4f6', font: { family: 'Outfit' } }
+                            }
+                        }
+                    }
+                });
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: wfaWindows,
+                        datasets: [
+                            {
+                                label: 'In-Sample Sharpe (Training)',
+                                data: isSharpe,
+                                backgroundColor: 'rgba(139, 92, 246, 0.5)',
+                                borderColor: '#8b5cf6',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Out-of-Sample Sharpe (Validation)',
+                                data: oosSharpe,
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                                borderColor: '#3b82f6',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                                ticks: { color: '#9ca3af', font: { family: 'Outfit' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#9ca3af', font: { family: 'Outfit' } }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: '#f3f4f6', font: { family: 'Outfit' } }
+                            }
+                        }
+                    }
+            }
+        }
+
+        function exportChartPNG() {
+            if (!chartInstance) return;
+            const link = document.createElement('a');
+            link.download = `${currentChartMode}_chart.png`;
+            link.href = chartInstance.toBase64Image();
+            link.click();
+        }
+
+        function exportDataCSV() {
+            let csvContent = "";
+            let filename = "";
+            if (currentChartMode === 'equity') {
+                if (rawEquityCSVText) {
+                    csvContent = rawEquityCSVText;
+                    filename = "baseline_equity_curve.csv";
+                } else {
+                    filename = "equity_curve_data_mock.csv";
+                    csvContent = "Date,PortfolioValue,DrawdownPct\n";
+                    for (let i = 0; i < equityDates.length; i++) {
+                        csvContent += `${equityDates[i]},${equityValues[i]},${drawdownValues[i]}\n`;
+                    }
+                }
+            } else {
+                filename = "walk_forward_sharpe_data.csv";
+                csvContent = "Window,InSampleSharpe,OutOfSampleSharpe\n";
+                for (let i = 0; i < wfaWindows.length; i++) {
+                    csvContent += `${wfaWindows[i]},${isSharpe[i]},${oosSharpe[i]}\n`;
+                }
+            }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', filename);
+            link.click();
+        }
+
+        function exportTradesCSV() {
+            let csvContent = "";
+            let filename = "baseline_trade_log.csv";
+            if (tradesCSVText) {
+                csvContent = tradesCSVText;
+            } else {
+                filename = "baseline_trade_log_mock.csv";
+                csvContent = "ID,Entry Date,Exit Date,Type,Size,Entry Price,Exit Price,Commission Paid,Net PnL (INR),Status\n" + 
+                             "1,2018-05-11,2018-05-16,LONG,2129,44.67,43.82,188.40,-1986.59,LOSS\n" +
+                             "2,2019-02-13,2019-03-13,LONG,2249,40.86,43.41,189.51,5535.62,WIN\n" +
+                             "3,2021-06-29,2021-07-07,LONG,784,131.46,139.85,212.71,6360.11,WIN\n" +
+                             "4,2023-11-15,2023-12-14,LONG,546,185.84,195.71,208.32,5178.18,WIN\n";
+            }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', filename);
+            link.click();
+        }
+    </script>
+</body>
+</html>
